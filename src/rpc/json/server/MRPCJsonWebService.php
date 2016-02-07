@@ -20,6 +20,7 @@ namespace mtoolkit\network\rpc\json\server;
  * @author  Michele Pagnin
  */
 use mtoolkit\controller\MAbstractController;
+use mtoolkit\controller\MAutorunController;
 use mtoolkit\core\enum\ContentType;
 use mtoolkit\core\MObject;
 use mtoolkit\network\rpc\json\MRPCJsonError;
@@ -29,38 +30,38 @@ use mtoolkit\network\rpc\json\MRPCJsonResponse;
 /**
  * This class is the base class for the web service classes.
  * A tipical implementation of web service RPC in JSON is:
- * 
+ *
  * class TestWS extends MAbstractWebService
  * {
  *      public function __construct()
  *      {
  *          parent::__construct();
  *      }
- * 
+ *
  *      public function add( $params )
  *      {
  *          $a=(int)$params['a'];
  *          $b=(int)$params['b'];
- * 
+ *
  *          $response=new MRPCJsonResponse();
- * 
+ *
  *          // The result must be an array.
  *          $response->setResult( array( $a+$b ) );
- * 
+ *
  *          $this->setResponse( $response );
  *      }
  * }
- * 
+ *
  * TestWS::run();
- * 
+ *
  * An example of JSON request could be:
  * {"jsonrpc": "2.0", "method": "add", "params": { 'a': 2, 'b':3 }, "id": 1}
  */
-class MRPCJsonWebService extends MAbstractController
+class MRPCJsonWebService extends MAbstractController implements MAutorunController
 {
     /**
      * The response from the web service.
-     * 
+     *
      * @var MRPCJsonResponse
      */
     private $response = null;
@@ -77,20 +78,20 @@ class MRPCJsonWebService extends MAbstractController
 
     /**
      * The request received by the web service.
-     * 
+     *
      * @var MRPCJsonRequest
      */
     private $request = null;
 
-    public function __construct(MObject $parent=null)
+    public function __construct( MObject $parent = null )
     {
-        parent::__construct($parent);
+        parent::__construct( $parent );
 
         $this->response = new MRPCJsonResponse();
     }
 
     /**
-     * @return MRPCJsonResponse 
+     * @return MRPCJsonResponse
      */
     protected function &getResponse()
     {
@@ -98,7 +99,7 @@ class MRPCJsonWebService extends MAbstractController
     }
 
     /**
-     * @return MRPCJsonRequest 
+     * @return MRPCJsonRequest
      */
     protected function getRequest()
     {
@@ -108,8 +109,8 @@ class MRPCJsonWebService extends MAbstractController
     /**
      * Set the response of the web service.
      * It must be valorizated by derived classes.
-     * 
-     * @param MRPCJsonResponse $response 
+     *
+     * @param MRPCJsonResponse $response
      */
     protected function setResponse( MRPCJsonResponse $response )
     {
@@ -118,6 +119,7 @@ class MRPCJsonWebService extends MAbstractController
 
     /**
      * Reads the request and run the web method.
+     *
      * @param $className
      * @throws MRPCJsonServerException
      */
@@ -128,7 +130,8 @@ class MRPCJsonWebService extends MAbstractController
 
         // Parse the request
         $rawRequest = file_get_contents( 'php://input' );
-        /* @var $request array */ $request = json_decode( $rawRequest, true );
+        /* @var $request array */
+        $request = json_decode( $rawRequest, true );
 
         // Is valid request?
         if( $request == false )
@@ -145,14 +148,14 @@ class MRPCJsonWebService extends MAbstractController
         // Set the request properties
         $this->request = new MRPCJsonRequest();
         $this->request
-                ->setMethod( $request["method"] )
-                ->setParams( $request["params"] )
-                ->setId( $request["id"] );
+            ->setMethod( $request["method"] )
+            ->setParams( $request["params"] )
+            ->setId( $request["id"] );
 
         // Call the procedure/member
         $callResponse = call_user_func(
-                array( $this, $this->request->getMethod() )
-                , $this->request->getParams() );
+            array($this, $this->request->getMethod())
+            , $this->request->getParams() );
 
         // Does the call fail?
         if( $callResponse === false )
@@ -169,7 +172,8 @@ class MRPCJsonWebService extends MAbstractController
         $class = new \ReflectionClass( $this->className );
         $methods = $class->getMethods( \ReflectionMethod::IS_PUBLIC );
 
-        foreach( $methods as /* @var $reflect \ReflectionMethod */ $reflect )
+        foreach( $methods as /* @var $reflect \ReflectionMethod */
+                 $reflect )
         {
             if( $reflect->class != $this->className )
             {
@@ -177,7 +181,7 @@ class MRPCJsonWebService extends MAbstractController
             }
 
             $docComment = $reflect->getDocComment();
-            $phpDoc = array( 'name' => $reflect->getName(), 'definition' => implode( "\n", array_map( 'trim', explode( "\n", $docComment ) ) ) );
+            $phpDoc = array('name' => $reflect->getName(), 'definition' => implode( "\n", array_map( 'trim', explode( "\n", $docComment ) ) ));
 
             $this->methodsDefinitions[] = $phpDoc;
         }
@@ -186,23 +190,25 @@ class MRPCJsonWebService extends MAbstractController
     /**
      * Run the instance of the web service.
      */
-    public static function run()
+    public static function autorun()
     {
-        /* @var $classes string[] */ $classes = array_reverse( get_declared_classes() );
+        /* @var $classes string[] */
+        $classes = array_reverse( get_declared_classes() );
 
         foreach( $classes as $class )
         {
             $type = new \ReflectionClass( $class );
             $abstract = $type->isAbstract();
 
-            if( is_subclass_of( $class, 'MToolkit\Network\RPC\Json\Server\MRPCJsonWebService' ) === false || $abstract === true )
+            if( is_subclass_of( $class, MRPCJsonWebService::class ) === false || $abstract === true )
             {
                 continue;
             }
 
-            /* @var $webService MRPCJsonWebService */ $webService = new $class();
+            /* @var $webService MRPCJsonWebService */
+            $webService = new $class();
 
-            // If the definitions are reuqested
+            // If the definitions are requested
             if( $_SERVER['QUERY_STRING'] == "definition" )
             {
                 $webService->definition();
@@ -239,12 +245,9 @@ class MRPCJsonWebService extends MAbstractController
                     $webService->response = new MRPCJsonResponse();
                     $webService->response->setError( $error );
                 }
-                
+
                 echo $webService->getResponse()->toJSON();
             }
-
-            // Clean the $_SESSION from signals.
-            $webService->disconnectSignals();
 
             return;
         }
@@ -252,4 +255,4 @@ class MRPCJsonWebService extends MAbstractController
 
 }
 
-register_shutdown_function( array( 'MToolkit\Network\RPC\Json\Server\MRPCJsonWebService', 'run' ) );
+register_shutdown_function( array(MRPCJsonWebService::class, 'autorun') );
