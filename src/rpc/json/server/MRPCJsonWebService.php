@@ -23,6 +23,7 @@ use mtoolkit\controller\MAbstractController;
 use mtoolkit\controller\MAutorunController;
 use mtoolkit\core\enum\ContentType;
 use mtoolkit\core\MObject;
+use mtoolkit\core\MString;
 use mtoolkit\network\rpc\json\MRPCJsonError;
 use mtoolkit\network\rpc\json\MRPCJsonRequest;
 use mtoolkit\network\rpc\json\MRPCJsonResponse;
@@ -154,7 +155,7 @@ class MRPCJsonWebService extends MAbstractController implements MAutorunControll
 
         // Call the procedure/member
         $callResponse = call_user_func(
-            array($this, $this->request->getMethod())
+            array( $this, $this->request->getMethod() )
             , $this->request->getParams() );
 
         // Does the call fail?
@@ -181,7 +182,7 @@ class MRPCJsonWebService extends MAbstractController implements MAutorunControll
             }
 
             $docComment = $reflect->getDocComment();
-            $phpDoc = array('name' => $reflect->getName(), 'definition' => implode( "\n", array_map( 'trim', explode( "\n", $docComment ) ) ));
+            $phpDoc = array( 'name' => $reflect->getName(), 'definition' => implode( "\n", array_map( 'trim', explode( "\n", $docComment ) ) ) );
 
             $this->methodsDefinitions[] = $phpDoc;
         }
@@ -211,32 +212,35 @@ class MRPCJsonWebService extends MAbstractController implements MAutorunControll
             // If the definitions are requested
             if( $_SERVER['QUERY_STRING'] == "definition" )
             {
+                $webService->getHttpResponse()->setContentType( ContentType::TEXT_HTML );
                 $webService->definition();
-                echo "<html><body>";
-                echo "<h1>Methods definitions</h1>";
+                $output = new MString();
+
+                $output->append( "<html><body>" );
+                $output->append( "<h1>Methods definitions</h1>" );
 
                 foreach( $webService->methodsDefinitions as $methodDefinition )
                 {
-                    echo "<h2>" . $methodDefinition["name"] . "</h2>";
-                    echo "<pre>" . $methodDefinition["definition"] . "</pre>";
+                    $output->append( "<h2>" . $methodDefinition["name"] . "</h2>" );
+                    $output->append( "<pre>" . $methodDefinition["definition"] . "</pre>" );
 
-                    echo "<h3>Request example</h3>";
-                    echo "<pre>" . '{"jsonrpc": "2.0", "method": "' . $methodDefinition["name"] . '", "params": {"name_1": value_1, "name_2": value_2, ...}, "id": 3}' . "</pre>";
+                    $output->append( "<h3>Request example</h3>" );
+                    $output->append( "<pre>" . '{"jsonrpc": "2.0", "method": "' . $methodDefinition["name"] . '", "params": {"name_1": value_1, "name_2": value_2, ...}, "id": 3}' . "</pre>" );
                 }
 
-                echo "</body></html>";
+                $output->append( "</body></html>" );
+                $webService->getHttpResponse()->setOutput( (string)$output );
             }
             // Normal web service execution
             else
             {
-                header( ContentType::APPLICATION_JSON );
+                $webService->getHttpResponse()->setContentType( ContentType::APPLICATION_JSON );
 
                 try
                 {
                     $webService->execute( $class );
                     $webService->getResponse()->setId( $webService->getRequest()->getId() );
-                }
-                catch( MRPCJsonServerException $ex )
+                } catch( MRPCJsonServerException $ex )
                 {
                     $error = new MRPCJsonError();
                     $error->setCode( -1 );
@@ -246,13 +250,30 @@ class MRPCJsonWebService extends MAbstractController implements MAutorunControll
                     $webService->response->setError( $error );
                 }
 
-                echo $webService->getResponse()->toJSON();
+                $webService->getHttpResponse()->setOutput( $webService->getResponse()->toJSON() );
             }
 
-            return;
+            return $webService;
         }
     }
 
 }
 
-register_shutdown_function( array(MRPCJsonWebService::class, 'autorun') );
+register_shutdown_function( function ()
+{
+    // Don't run the controller in cli mode
+    if( php_sapi_name() == 'cli' )
+    {
+        return;
+    }
+
+    // Run the controller
+    /* @var $webService MRPCJsonWebService */
+    $webService = MRPCJsonWebService::autorun();
+
+    if( $webService != null )
+    {
+        header( $webService->getHttpResponse()->getContentType() );
+        echo $webService->getHttpResponse()->getOutput();
+    }
+} );
