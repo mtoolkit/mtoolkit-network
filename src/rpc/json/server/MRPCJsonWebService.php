@@ -28,10 +28,10 @@ use mtoolkit\network\rpc\json\MRPCJsonRequest;
 use mtoolkit\network\rpc\json\MRPCJsonResponse;
 
 /**
- * This class is the base class for the web service classes.
+ * <b>MRPCJsonWebService</b> is the base class for the web service classes.
  * A tipical implementation of web service RPC in JSON is:
  *
- * class TestWS extends MAbstractWebService
+ * class DummyWS extends MRPCJsonWebService
  * {
  *      public function __construct()
  *      {
@@ -52,10 +52,10 @@ use mtoolkit\network\rpc\json\MRPCJsonResponse;
  *      }
  * }
  *
- * TestWS::run();
- *
  * An example of JSON request could be:
- * {"jsonrpc": "2.0", "method": "add", "params": { 'a': 2, 'b':3 }, "id": 1}
+ * <pre>
+ *      {"jsonrpc": "2.0", "method": "add", "params": { 'a': 2, 'b':3 }, "id": 1}
+ * </pre>
  */
 class MRPCJsonWebService extends MAbstractController implements MAutorunController
 {
