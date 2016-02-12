@@ -53,7 +53,7 @@ use mtoolkit\network\rpc\json\MRPCJsonResponse;
  *
  * An example of JSON request could be:
  * <pre>
- *      {"jsonrpc": "2.0", "method": "add", "params": { 'a': 2, 'b':3 }, "id": 1}
+ *      {"jsonrpc": "2.0", "method": "add", "params": { "a": 2, "b":3 }, "id": 1}
  * </pre>
  */
 abstract class MRPCJsonWebService extends MAbstractController
@@ -68,7 +68,7 @@ abstract class MRPCJsonWebService extends MAbstractController
     /**
      * @var string
      */
-    private $className = "";
+    private $className = '';
 
     /**
      * The request received by the web service.
@@ -87,7 +87,7 @@ abstract class MRPCJsonWebService extends MAbstractController
     /**
      * @return MRPCJsonResponse
      */
-    protected function &getResponse()
+    public function &getResponse()
     {
         return $this->response;
     }
@@ -95,7 +95,7 @@ abstract class MRPCJsonWebService extends MAbstractController
     /**
      * @return MRPCJsonRequest
      */
-    protected function getRequest()
+    public function getRequest()
     {
         return $this->request;
     }
@@ -120,8 +120,7 @@ abstract class MRPCJsonWebService extends MAbstractController
     public function execute( $className )
     {
         $this->className = $className;
-
-
+        
         // Parse the request
         $rawRequest = file_get_contents( 'php://input' );
         /* @var $request array */
@@ -134,7 +133,7 @@ abstract class MRPCJsonWebService extends MAbstractController
         }
 
         // Does the request respect the 2.0 specification?
-        if( $request["jsonrpc"] != '2.0' )
+        if( $request['jsonrpc'] != '2.0' )
         {
             throw new MRPCJsonServerException( sprintf( 'The request does not respect the 2.0 specification.' ) );
         }
@@ -142,9 +141,9 @@ abstract class MRPCJsonWebService extends MAbstractController
         // Set the request properties
         $this->request = new MRPCJsonRequest();
         $this->request
-            ->setMethod( $request["method"] )
-            ->setParams( $request["params"] )
-            ->setId( $request["id"] );
+            ->setMethod( $request['method'] )
+            ->setParams( $request['params'] )
+            ->setId( $request['id'] );
 
         // Call the procedure/member
         $callResponse = call_user_func(
@@ -154,7 +153,7 @@ abstract class MRPCJsonWebService extends MAbstractController
         // Does the call fail?
         if( $callResponse === false )
         {
-            throw new MRPCJsonServerException( 'No service.' );
+            throw new MRPCJsonServerException( 'Invalid method name.' );
         }
     }
 
@@ -180,7 +179,7 @@ abstract class MRPCJsonWebService extends MAbstractController
             $webService = new $class();
 
             // If the definitions are requested
-            if( $_SERVER['QUERY_STRING'] == "definition" )
+            if( $_SERVER['QUERY_STRING'] == 'definition' )
             {
                 $definition = new MRPCJsonWebServiceDefinition( $class );
 
