@@ -20,10 +20,8 @@ namespace mtoolkit\network\rpc\json\server;
  * @author  Michele Pagnin
  */
 use mtoolkit\controller\MAbstractController;
-use mtoolkit\controller\MAutorunController;
 use mtoolkit\core\enum\ContentType;
 use mtoolkit\core\MObject;
-use mtoolkit\core\MString;
 use mtoolkit\network\rpc\json\MRPCJsonError;
 use mtoolkit\network\rpc\json\MRPCJsonRequest;
 use mtoolkit\network\rpc\json\MRPCJsonResponse;
@@ -71,11 +69,6 @@ abstract class MRPCJsonWebService extends MAbstractController
      * @var string
      */
     private $className = "";
-
-    /**
-     * @var array
-     */
-    private $methodsDefinitions = array();
 
     /**
      * The request received by the web service.
@@ -166,29 +159,6 @@ abstract class MRPCJsonWebService extends MAbstractController
     }
 
     /**
-     * Sets the array of the definitions of the methods.
-     */
-    private function definition()
-    {
-        $class = new \ReflectionClass( $this->className );
-        $methods = $class->getMethods( \ReflectionMethod::IS_PUBLIC );
-
-        foreach( $methods as /* @var $reflect \ReflectionMethod */
-                 $reflect )
-        {
-            if( $reflect->class != $this->className )
-            {
-                continue;
-            }
-
-            $docComment = $reflect->getDocComment();
-            $phpDoc = array( 'name' => $reflect->getName(), 'definition' => implode( "\n", array_map( 'trim', explode( "\n", $docComment ) ) ) );
-
-            $this->methodsDefinitions[] = $phpDoc;
-        }
-    }
-
-    /**
      * Run the instance of the web service.
      */
     public static function autorun()
@@ -212,24 +182,10 @@ abstract class MRPCJsonWebService extends MAbstractController
             // If the definitions are requested
             if( $_SERVER['QUERY_STRING'] == "definition" )
             {
+                $definition = new MRPCJsonWebServiceDefinition( $class );
+
                 $webService->getHttpResponse()->setContentType( ContentType::TEXT_HTML );
-                $webService->definition();
-                $output = new MString();
-
-                $output->append( "<html><body>" );
-                $output->append( "<h1>Methods definitions</h1>" );
-
-                foreach( $webService->methodsDefinitions as $methodDefinition )
-                {
-                    $output->append( "<h2>" . $methodDefinition["name"] . "</h2>" );
-                    $output->append( "<pre>" . $methodDefinition["definition"] . "</pre>" );
-
-                    $output->append( "<h3>Request example</h3>" );
-                    $output->append( "<pre>" . '{"jsonrpc": "2.0", "method": "' . $methodDefinition["name"] . '", "params": {"name_1": value_1, "name_2": value_2, ...}, "id": 3}' . "</pre>" );
-                }
-
-                $output->append( "</body></html>" );
-                $webService->getHttpResponse()->setOutput( (string)$output );
+                $webService->getHttpResponse()->setOutput( (string)$definition );
             }
             // Normal web service execution
             else
@@ -255,8 +211,9 @@ abstract class MRPCJsonWebService extends MAbstractController
 
             return $webService;
         }
-    }
 
+        return null;
+    }
 }
 
 register_shutdown_function( function ()
