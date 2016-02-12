@@ -58,7 +58,7 @@ use mtoolkit\network\rpc\json\MRPCJsonResponse;
  *      {"jsonrpc": "2.0", "method": "add", "params": { 'a': 2, 'b':3 }, "id": 1}
  * </pre>
  */
-class MRPCJsonWebService extends MAbstractController implements MAutorunController
+abstract class MRPCJsonWebService extends MAbstractController
 {
     /**
      * The response from the web service.
