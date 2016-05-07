@@ -80,9 +80,16 @@ abstract class MRPCJsonWebService extends MAbstractController
     public function __construct( MObject $parent = null )
     {
         parent::__construct( $parent );
+        $this->init();
 
         $this->response = new MRPCJsonResponse();
     }
+
+    /**
+     * Mehtod called in the construct.
+     * It permits to initialize the object in the derived classes.
+     */
+    public abstract function init();
 
     /**
      * @return MRPCJsonResponse
