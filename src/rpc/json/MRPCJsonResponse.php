@@ -36,14 +36,14 @@ class MRPCJsonResponse extends MRPCResponse
     /**
      * Returns the JSON options.<br>
      * <br>
-     * Bitmask consisting of JSON_HEX_QUOT, JSON_HEX_TAG, JSON_HEX_AMP, 
-     * JSON_HEX_APOS, JSON_NUMERIC_CHECK, JSON_PRETTY_PRINT, 
-     * JSON_UNESCAPED_SLASHES, JSON_FORCE_OBJECT, JSON_PRESERVE_ZERO_FRACTION, 
+     * Bitmask consisting of JSON_HEX_QUOT, JSON_HEX_TAG, JSON_HEX_AMP,
+     * JSON_HEX_APOS, JSON_NUMERIC_CHECK, JSON_PRETTY_PRINT,
+     * JSON_UNESCAPED_SLASHES, JSON_FORCE_OBJECT, JSON_PRESERVE_ZERO_FRACTION,
      * JSON_UNESCAPED_UNICODE, JSON_PARTIAL_OUTPUT_ON_ERROR. <br>
-     * The behaviour of these constants is described on the 
-     * <a href="http://php.net/manual/en/json.constants.php">JSON constants</a> 
+     * The behaviour of these constants is described on the
+     * <a href="http://php.net/manual/en/json.constants.php">JSON constants</a>
      * page.
-     * 
+     *
      * @return int
      */
     public function getOptions()
@@ -54,14 +54,14 @@ class MRPCJsonResponse extends MRPCResponse
     /**
      * Sets the JSON options.<br>
      * <br>
-     * Bitmask consisting of JSON_HEX_QUOT, JSON_HEX_TAG, JSON_HEX_AMP, 
-     * JSON_HEX_APOS, JSON_NUMERIC_CHECK, JSON_PRETTY_PRINT, 
-     * JSON_UNESCAPED_SLASHES, JSON_FORCE_OBJECT, JSON_PRESERVE_ZERO_FRACTION, 
+     * Bitmask consisting of JSON_HEX_QUOT, JSON_HEX_TAG, JSON_HEX_AMP,
+     * JSON_HEX_APOS, JSON_NUMERIC_CHECK, JSON_PRETTY_PRINT,
+     * JSON_UNESCAPED_SLASHES, JSON_FORCE_OBJECT, JSON_PRESERVE_ZERO_FRACTION,
      * JSON_UNESCAPED_UNICODE, JSON_PARTIAL_OUTPUT_ON_ERROR. <br>
-     * The behaviour of these constants is described on the 
-     * <a href="http://php.net/manual/en/json.constants.php">JSON constants</a> 
+     * The behaviour of these constants is described on the
+     * <a href="http://php.net/manual/en/json.constants.php">JSON constants</a>
      * page.
-     * 
+     *
      * @param int $options
      * @return \MToolkit\Network\RPC\Json\MRPCJsonResponse
      */
@@ -78,8 +78,8 @@ class MRPCJsonResponse extends MRPCResponse
     {
         $array = array(
             'jsonrpc' => MRPCJson::VERSION
-            , 'result' => $this->getResult()
-            , 'id' => $this->getId()
+        , 'result' => $this->getResult()
+        , 'id' => $this->getId()
         );
 
         if( $this->getError() != null )
@@ -100,14 +100,20 @@ class MRPCJsonResponse extends MRPCResponse
 
     /**
      * @param array $json
+     * @return MRPCJsonResponse
      */
     public static function fromArray( array $json )
     {
         $response = new MRPCJsonResponse();
 
-        $response->setError( MRPCJsonError::fromArray( $json["error"] ) );
+        if( isset($json["error"]) )
+        {
+            $response->setError( MRPCJsonError::fromArray( $json["error"] ) );
+        }
+
         $response->setId( $json["id"] );
         $response->setResult( $json["result"] );
+        return $response;
     }
 
 }
