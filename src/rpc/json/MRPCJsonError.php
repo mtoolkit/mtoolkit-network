@@ -30,8 +30,8 @@ class MRPCJsonError extends MRPCError
     public function toArray()
     {
         return array(
-            "code" => $this->getCode()
-            , "message" => $this->getMessage()
+            "code" => $this->getCode(),
+            "message" => $this->getMessage()
         );
     }
 
@@ -39,13 +39,13 @@ class MRPCJsonError extends MRPCError
      * @param array $json
      * @return \MToolkit\Network\RPC\Json\MRPCJsonError
      */
-    public static function fromArray(array $json)
+    public static function fromArray( array $json )
     {
-        $error=new MRPCJsonError();
-        
-        $error->setCode($json["error"]);
-        $error->setMessage($json["message"]);
-        
+        $error = new MRPCJsonError();
+
+        $error->setCode( $json["error"] );
+        $error->setMessage( $json["message"] );
+
         return $error;
     }
 }

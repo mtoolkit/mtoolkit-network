@@ -29,18 +29,18 @@ class MRPCJsonClient
      * @var MRPCJsonRequest
      */
     private $request;
-    
+
     /**
      * @var MRPCJsonResponse
      */
     private $response;
-    
+
     /**
      * @var string
      */
     private $url;
 
-    public function __construct($url = null)
+    public function __construct( $url = null )
     {
         $this->url = $url;
     }
@@ -57,7 +57,7 @@ class MRPCJsonClient
      * @param string $url
      * @return \MToolkit\Network\RPC\Json\Client\MRPCJsonClient
      */
-    public function setUrl($url)
+    public function setUrl( $url )
     {
         $this->url = $url;
         return $this;
@@ -68,56 +68,59 @@ class MRPCJsonClient
      */
     private function generateId()
     {
-        $chars = array_merge(range('A', 'Z'), range('a', 'z'), range(0, 9));
+        $chars = array_merge( range( 'A', 'Z' ), range( 'a', 'z' ), range( 0, 9 ) );
         $id = '';
-        
-        for ($c = 0; $c < 16; ++$c)
+
+        for( $c = 0; $c < 16; ++$c )
         {
-            $id .= $chars[mt_rand(0, count($chars) - 1)];
+            $id .= $chars[mt_rand( 0, count( $chars ) - 1 )];
         }
-        
+
         return $id;
     }
 
-    public function call(MRPCJsonRequest $request)
+    public function call( MRPCJsonRequest $request )
     {
-        $this->request=$request;
-        $this->request->setId($this->generateId());
-        $jsonRequest = json_encode($this->request->toArray());
+        $this->request = $request;
+        if( is_null( $this->generateId() ) )
+        {
+            $this->request->setId( $this->generateId() );
+        }
 
-        $ctx = stream_context_create(array(
+        $jsonRequest = json_encode( $this->request->toArray() );
+
+        $ctx = stream_context_create( array(
             'http' => array(
                 'method' => 'POST',
                 'header' => 'Content-Type: application/json\r\n',
                 'content' => $jsonRequest
             )
-        ));
-        $jsonResponse = file_get_contents($this->url, false, $ctx);
+        ) );
+        $jsonResponse = file_get_contents( $this->url, false, $ctx );
 
-        if ($jsonResponse === false)
+        if( $jsonResponse === false )
         {
-            throw new MRPCJsonClientException('file_get_contents failed', -32603);
+            throw new MRPCJsonClientException( 'file_get_contents failed', -32603 );
         }
 
-        $response = json_decode($jsonResponse, true);
+        $response = json_decode( $jsonResponse, true );
 
-        if ($response === null)
+        if( $response === null )
         {
-            throw new MRPCJsonClientException('JSON cannot be decoded', -32603);
+            throw new MRPCJsonClientException( 'JSON cannot be decoded', -32603 );
         }
 
-        if ($response->id != $request->getId())
+        if( $response['id'] != $request->getId() )
         {
-            throw new MRPCJsonClientException('Mismatched JSON-RPC IDs', -32603);
+            throw new MRPCJsonClientException( 'Mismatched JSON-RPC IDs', -32603 );
         }
 
-        if (property_exists($response, 'result')===false)
+        if( isset($response['result']) === false )
         {
-            throw new MRPCJsonClientException('Invalid JSON-RPC response', -32603);
+            throw new MRPCJsonClientException( 'Invalid JSON-RPC response', -32603 );
         }
-        
-        $this->response=new MRPCJsonResponse();
-        $this->response->fromArray($response);
+
+        $this->response = MRPCJsonResponse::fromArray( $response );
     }
 
     /**
@@ -128,7 +131,7 @@ class MRPCJsonClient
         return $this->request;
     }
 
-    public function setRequest(MRPCJsonRequest $request)
+    public function setRequest( MRPCJsonRequest $request )
     {
         $this->request = $request;
         return $this;
@@ -142,7 +145,7 @@ class MRPCJsonClient
         return $this->response;
     }
 
-    public function setResponse(MRPCJsonResponse $response)
+    public function setResponse( MRPCJsonResponse $response )
     {
         $this->response = $response;
         return $this;
