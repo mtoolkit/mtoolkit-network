@@ -29,7 +29,12 @@ use mtoolkit\network\rpc\MRPCRequest;
  * {"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1} 
  */
 class MRPCJsonRequest extends MRPCRequest
-{   
+{
+    /**
+     * Return the class as an array.
+     *
+     * @return array
+     */
     public function toArray()
     {
         $array=array(
@@ -39,9 +44,15 @@ class MRPCJsonRequest extends MRPCRequest
             , 'id' => $this->getId()
         );
         
-        return json_encode($array);
+        return $array;
     }
 
+    /**
+     * Initializes a {@link MRPCJsonRequest} object from an <i>$json</i> array.
+     *
+     * @param array $json
+     * @return MRPCJsonRequest
+     */
     public static function fromArray(array $json)
     {
         $request=new MRPCJsonRequest();

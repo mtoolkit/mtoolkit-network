@@ -99,7 +99,7 @@ class MRPCJsonClient
             throw new MRPCJsonClientException('file_get_contents failed', -32603);
         }
 
-        $response = json_decode($jsonResponse);
+        $response = json_decode($jsonResponse, true);
 
         if ($response === null)
         {
