@@ -1,6 +1,6 @@
 {
   "name": "mtoolkit/mtoolkit-network",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The network module of MToolkit framework",
   "keywords": ["framework","toolkit", "Qt", ".NET", "web framework", "php", "fast", "simple", "free", "library"],
   "type": "library",

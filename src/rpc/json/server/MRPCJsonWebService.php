@@ -86,12 +86,6 @@ abstract class MRPCJsonWebService extends MAbstractController
     }
 
     /**
-     * Mehtod called in the construct.
-     * It permits to initialize the object in the derived classes.
-     */
-    public abstract function init();
-
-    /**
      * @return MRPCJsonResponse
      */
     public function &getResponse()
