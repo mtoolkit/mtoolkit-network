@@ -80,7 +80,6 @@ abstract class MRPCJsonWebService extends MAbstractController
     public function __construct( MObject $parent = null )
     {
         parent::__construct( $parent );
-        $this->init();
 
         $this->response = new MRPCJsonResponse();
     }

@@ -20,7 +20,7 @@
   "require": {
     "php": ">=5.3.0",
     "mtoolkit/mtoolkit-core": "dev-master",
-    "mtoolkit/mtoolkit-controller": "dev-master",
+    "mtoolkit/mtoolkit-controller": "0.0.2",
     "mtoolkit/mtoolkit-model": "dev-master"
   },
   "require-dev": {
